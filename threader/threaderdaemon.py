@@ -22,8 +22,8 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
 
         eventloop.EventLoop.__init__(self, sock, \
                 signals={
-                    signal.SIGINT : self.close,
-                    signal.SIGTERM: self.close
+                    signal.SIGINT : self._action_close,
+                    signal.SIGTERM: self._action_close
                 })
 
         self.dispatcher = dispatcher.Dispatcher()
@@ -129,7 +129,7 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
 
         return u"%d threads stopped. %d threads joined.\n" % (stopped, joined)
     
-    def _action_close(self, **kwargs):
+    def _action_close(self, *args, **kwargs):
         """Shutdown the application,
            Example: close
         """
