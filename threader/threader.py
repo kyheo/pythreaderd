@@ -31,7 +31,6 @@ class Threader(object):
         i = 0
         while i < qty:
             name   = 'TProcessor_%03d' % (self.last_id + i,)
-            thread = tprocessor.Processor(name=name)
             thread = tprocessor.Processor(name=name, **kwargs)
             self.threads.append(thread)
             log.debug(u'start_thread(): %s' % (name))
