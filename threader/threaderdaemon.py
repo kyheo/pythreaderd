@@ -10,9 +10,15 @@ import logging
 log = logging.getLogger('threaderdaemon')
 
 class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
+    """Example class wich extends both EventLoop and Threader.
+    """
+
     dispatcher = None
 
     def __init__(self, port=9000):
+        """Set up the file handler and register all actions to handle messages
+           with the dispatcher.
+        """
         log.debug('ThreaderDaemon()')
         
         # "File" creation
@@ -20,14 +26,12 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(('', port))
 
-        eventloop.EventLoop.__init__(self, sock, \
-                signals={
-                    signal.SIGINT : self._action_close,
-                    signal.SIGTERM: self._action_close
-                })
+        signals = {signal.SIGINT : self._action_close, \
+                   signal.SIGTERM: self._action_close}
+        eventloop.EventLoop.__init__(self, sock, signals=signals)
 
         self.dispatcher = dispatcher.Dispatcher()
-        log.debug(u'Threader(): register actions')
+        log.debug(u'ThreaderDaemon(): register actions')
         self.dispatcher.register_action('close' , self._action_close)
         self.dispatcher.register_action('count' , self._action_count)
         self.dispatcher.register_action('start' , self._action_start)
@@ -37,11 +41,17 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
         self.dispatcher.register_action('list'  , self._action_list )
 
     def run(self, qty):
+        """Runs the main process. 
+           Qty parameter is used to start the number of threads defined.
+        """
         log.debug(u'run(): %d' % (qty,))
         self.start_thread(qty=qty)
         return self.loop()
 
     def handle(self):
+        """EventLoop.handle redefinition. Send incomming messages to the
+           dispatcher and the response to the sender.
+        """
         (msg, addr) = self.file.recvfrom(65535)
         response = u' -- nok -- \n'
         try:
@@ -50,7 +60,6 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
             response = u"""Invalid action: %s. Call help to get the full list of available actions.\n""" % (str(e),)
         except Exception, e:  
             response = u'Error: %s\n' % (str(e),)
-        
         self.file.sendto(response.encode('utf-8'), addr)            
 
     def _action_count(self, params):
