@@ -1,15 +1,20 @@
 # vim: set encoding=utf-8 et sw=4 sts=4 :
-
-import tprocessor
-
+from error import Error
 import logging 
 log = logging.getLogger('threader')
 
 class Threader(object):
     """Thread handling class.
     """
-    threads    = []
-    last_id    = 0
+    threads = []
+    last_id = 0
+    processors = {}
+
+    def register_processor(self, processor, class_):
+        if processor in self.processors:
+            raise AlreadyRegisteredProcessorError(processor)
+        log.debug(u'register_processor(): %s' % (processor,))
+        self.processors[processor] = class_
 
     def close(self):
         """Closes all threads.
@@ -22,16 +27,17 @@ class Threader(object):
             self.join_thread(thread)
         log.debug(u'We have a Threader going down. Bye Bye!')
 
-    def start_thread(self, qty=1, *args, **kwargs):
+    def start_thread(self, processor=None, qty=1, *args, **kwargs):
         """Starts a number of threads (defined by qty parametr), and sends all
            named args to the thread constructor.
-           @TODO Should add a register_thread or something like that to allow
-           selective thread start.
         """
+        if processor not in self.processors or processor is None:
+            raise InvalidProcessorError(processor)
+
         i = 0
         while i < qty:
-            name   = 'TProcessor_%03d' % (self.last_id + i,)
-            thread = tprocessor.Processor(name=name, **kwargs)
+            name   = '%s_%03d' % (processor, self.last_id + i,)
+            thread = self.processors[processor](name=name, **kwargs)
             self.threads.append(thread)
             log.debug(u'start_thread(): %s' % (name))
             thread.start()
@@ -60,3 +66,13 @@ class Threader(object):
         for thread in self.threads[:]:
             if not thread.isAlive():
                 self.threads.remove(thread)
+
+class AlreadyRegisteredProcessorError(Error):
+    """Raised when a processor is already registered.
+    """
+    pass
+
+class InvalidProcessorError(Error):
+    """Raised when a processor is already registered.
+    """
+    pass
