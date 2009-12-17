@@ -1,8 +1,13 @@
 # vim: set encoding=utf-8 et sw=4 sts=4 :
 
-import sys, signal, socket
+import sys
+import signal
+import socket
 
-import eventloop, threader, dispatcher, tprocessor
+import eventloop
+import threader
+import dispatcher
+import tprocessor
 
 from dispatcher import AlreadyRegisteredActionError, InvalidActionError
 
@@ -30,6 +35,10 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
                    signal.SIGTERM: self._action_close}
         eventloop.EventLoop.__init__(self, sock, signals=signals)
 
+        log.debug(u'ThreaderDaemon(): register processors')
+        self.register_processor('processor', tprocessor.Processor)
+        self.register_processor('processor2', tprocessor.Processor2)
+
         self.dispatcher = dispatcher.Dispatcher()
         log.debug(u'ThreaderDaemon(): register actions')
         self.dispatcher.register_action('close' , self._action_close)
@@ -40,12 +49,12 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
         self.dispatcher.register_action('flush' , self._action_flush)
         self.dispatcher.register_action('list'  , self._action_list )
 
-    def run(self, qty):
+    def run(self, processor, qty):
         """Runs the main process. 
            Qty parameter is used to start the number of threads defined.
         """
-        log.debug(u'run(): %d' % (qty,))
-        self.start_thread(qty=qty)
+        log.debug(u'run(): %s - %d' % (processor, qty))
+        self.start_thread(processor=processor, qty=qty)
         return self.loop()
 
     def handle(self):
@@ -91,9 +100,9 @@ class ThreaderDaemon(eventloop.EventLoop, threader.Threader):
 
     def _action_start(self, params):
         """Start X threads, being X the first (and only) parameter sent.
-           Example: start 3 # Will start 3 new threads.
+           Example: start <type> 3 # Will start 3 new threads of type <type>.
         """
-        tot = self.start_thread(int(params[0]))
+        tot = self.start_thread(processor=params[0], qty=int(params[1]))
         return u"%d threads started.\n" % (tot,)
 
     def _action_istop(self, params):
