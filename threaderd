@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # vim: set encoding=utf-8 et sw=4 sts=4 :
 
-from threader import threaderdaemon
 import sys, os
+from threader import threaderdaemon
 
 import logging 
 log = logging.getLogger('threaderd')
 
 try:
-    start_threads = int(sys.argv[1])
+    processor = sys.argv[1]
+    start_threads = int(sys.argv[2])
 except:
+    processor = 'Processor2'
     start_threads = 5
 
 logging.basicConfig(                                              
@@ -19,6 +21,6 @@ logging.basicConfig(
     )
 try:
     t = threaderdaemon.ThreaderDaemon()
-    t.run(start_threads)
+    t.run(processor=processor, qty=start_threads)
 except Exception, e:
     log.error(str(e))
