@@ -46,8 +46,20 @@ class Processor(TProcessor):
     loops = 0
 
     def _run(self):
-        log.debug(u'Starting %s' % (self.getName()))
+        log.debug(u'Processor - Starting %s' % (self.getName()))
         while not self._stop:
             self.loops+=1
             time.sleep(2)
-        log.debug(u'Stopping %s' % (self.getName()))
+        log.debug(u'Processor - Stopping %s' % (self.getName()))
+
+class Processor2(TProcessor):
+    """Example processor class.
+    """
+    loops = 0
+
+    def _run(self):
+        log.debug(u'Processor2 - Starting %s' % (self.getName()))
+        while not self._stop:
+            self.loops+=1
+            time.sleep(2)
+        log.debug(u'Processor2 - Stopping %s' % (self.getName()))
