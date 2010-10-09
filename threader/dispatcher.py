@@ -33,7 +33,7 @@ class Dispatcher(object):
         """
         (action, params) = self._parse_msg(msg)
         log.debug(u'dispatch(): %s' % (action,))
-        if not self._actions[action]:
+        if action not in self._actions:
             raise InvalidActionError(action)
         return self._actions[action](params=params)
 
